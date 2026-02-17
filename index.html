@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Accounting V14.17 - Ultimate</title>
+    <title>Smart Accounting V14.20 - Triple Checked</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -13,14 +13,14 @@
         <header class="mb-6 flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight italic uppercase">Smart<span class="text-indigo-600 font-normal">Accounting</span></h1>
-                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">V14.17 - The Ironclad Edition</p>
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">V14.20 - Verified Logic & Stability</p>
             </div>
             <div class="flex flex-wrap gap-2 mt-4 md:mt-0">
                 <button @click="downloadBackup" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-indigo-700 shadow-md transition-all">💾 BACKUP</button>
                 <label class="bg-amber-500 text-white px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-amber-600 cursor-pointer shadow-md transition-all">
                     📂 RESTORE <input type="file" @change="importBackup" class="hidden">
                 </label>
-                <button @click="resetData" class="bg-rose-50 text-rose-500 px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-rose-100 transition-all">🗑️ RESET</button>
+                <button @click="resetData" class="bg-rose-50 text-rose-500 px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-rose-100">🗑️ RESET</button>
             </div>
         </header>
 
@@ -35,7 +35,7 @@
                         </div>
                         <div>
                             <label class="text-[9px] font-bold text-slate-400 uppercase">Jenis Transaksi</label>
-                            <select x-model="form.categoryKey" @change="autoSetAccounts()" class="w-full border-2 border-indigo-50 p-3 rounded-xl text-[11px] font-bold bg-indigo-50 text-indigo-700 outline-none">
+                            <select x-model="form.categoryKey" @change="handleCategoryChange" class="w-full border-2 border-indigo-50 p-3 rounded-xl text-[11px] font-bold bg-indigo-50 text-indigo-700 outline-none">
                                 <option value="">-- PILIH KATEGORI --</option>
                                 <template x-for="(cat, key) in smartCategories" :key="key">
                                     <option :value="key" x-text="cat.label"></option>
@@ -53,7 +53,7 @@
                                 </select>
                             </div>
                             <div x-show="form.categoryKey === 'transfer'">
-                                <label class="text-[9px] font-bold text-rose-500 uppercase mt-2 block italic">Ke Akun Tujuan</label>
+                                <label class="text-[9px] font-bold text-rose-500 uppercase mt-2 block italic text-center">Ke Akun Tujuan</label>
                                 <select x-model="form.target" class="w-full border-2 border-white p-2.5 rounded-lg text-xs font-bold shadow-sm outline-none">
                                     <template x-for="acc in coa.filter(a => a.type === 'Asset' && a.code !== '1-1300')">
                                         <option :value="acc.code" x-text="acc.name"></option>
@@ -78,11 +78,11 @@
             <div class="lg:col-span-8 space-y-6">
                 <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <input type="text" x-model="filters.search" placeholder="Cari keterangan/log..." class="border-2 border-slate-50 bg-slate-50 p-2.5 rounded-xl text-[10px] font-bold outline-none focus:border-indigo-300">
+                        <input type="text" x-model="filters.search" placeholder="Cari log..." class="border-2 border-slate-50 bg-slate-50 p-2.5 rounded-xl text-[10px] font-bold outline-none focus:border-indigo-300">
                         <div class="flex items-center gap-2 md:col-span-2">
-                            <input type="date" x-model="filters.start" class="w-full border-2 border-slate-50 bg-slate-50 p-2.5 rounded-xl text-[10px] font-bold outline-none">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase">Sampai</span>
-                            <input type="date" x-model="filters.end" class="w-full border-2 border-slate-50 bg-slate-50 p-2.5 rounded-xl text-[10px] font-bold outline-none">
+                            <input type="date" x-model="filters.start" class="w-full border-2 border-slate-50 bg-slate-50 p-2.5 rounded-xl text-[10px] font-bold">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase font-black">S/D</span>
+                            <input type="date" x-model="filters.end" class="w-full border-2 border-slate-50 bg-slate-50 p-2.5 rounded-xl text-[10px] font-bold">
                         </div>
                     </div>
                 </div>
@@ -95,20 +95,24 @@
 
                 <main class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[400px]">
                     <div x-show="activeTab === 'Utama'" class="space-y-6">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-emerald-500 p-6 rounded-3xl text-white shadow-md font-black">
-                                <p class="text-[10px] uppercase opacity-80 italic">Pendapatan (Filtered)</p>
-                                <h3 class="text-2xl" x-text="formatIDR(filteredTotals.revenue)"></h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div class="bg-emerald-500 p-5 rounded-3xl text-white shadow-md font-black">
+                                <p class="text-[9px] uppercase opacity-80 italic">Pendapatan</p>
+                                <h3 class="text-xl" x-text="formatIDR(filteredTotals.revenue)"></h3>
                             </div>
-                            <div class="bg-indigo-600 p-6 rounded-3xl text-white shadow-md font-black">
-                                <p class="text-[10px] uppercase opacity-80 italic">Laba Bersih (Filtered)</p>
-                                <h3 class="text-2xl" x-text="formatIDR(filteredTotals.revenue - filteredTotals.expense)"></h3>
+                            <div class="bg-indigo-600 p-5 rounded-3xl text-white shadow-md font-black">
+                                <p class="text-[9px] uppercase opacity-80 italic">Laba Bersih</p>
+                                <h3 class="text-xl" x-text="formatIDR(filteredTotals.revenue - filteredTotals.expense)"></h3>
+                            </div>
+                            <div class="bg-slate-800 p-5 rounded-3xl text-white shadow-md font-black col-span-2 md:col-span-1">
+                                <p class="text-[9px] uppercase opacity-80 italic">Margin Laba</p>
+                                <h3 class="text-xl" x-text="profitMargin + '%'"></h3>
                             </div>
                         </div>
                         <h2 class="font-black text-slate-800 mb-4 uppercase text-xs border-l-4 border-slate-800 pl-3">Ringkasan Saldo Akun</h2>
                         <table class="w-full text-sm">
                             <template x-for="row in trialBalance" :key="row.code">
-                                <tr class="border-b border-slate-50">
+                                <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                                     <td class="py-3 font-bold text-slate-600" x-text="row.name"></td>
                                     <td class="py-3 text-right font-black" :class="(row.type==='Asset'||row.type==='Expense') ? 'text-indigo-600' : 'text-rose-500'" x-text="formatIDR(row.debit > 0 ? row.debit : row.kredit)"></td>
                                 </tr>
@@ -118,14 +122,14 @@
 
                     <div x-show="activeTab === 'Neraca'" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="p-6 bg-slate-50 rounded-3xl border border-slate-200">
-                            <h3 class="font-black text-indigo-600 mb-4 uppercase text-[10px]">Aktiva (Harta)</h3>
+                            <h3 class="font-black text-indigo-600 mb-4 uppercase text-[10px]">Aktiva</h3>
                             <template x-for="row in trialBalance.filter(r => r.type === 'Asset')" :key="row.code">
                                 <div class="flex justify-between border-b border-white py-2 text-sm"><span x-text="row.name"></span><span class="font-bold" x-text="formatIDR(row.debit)"></span></div>
                             </template>
                             <div class="flex justify-between pt-4 font-black text-indigo-600 border-t border-indigo-100"><span>TOTAL ASET</span><span x-text="formatIDR(totalAssets)"></span></div>
                         </div>
                         <div class="p-6 bg-slate-50 rounded-3xl border border-slate-200">
-                            <h3 class="font-black text-rose-500 mb-4 uppercase text-[10px]">Pasiva (Kewajiban & Modal)</h3>
+                            <h3 class="font-black text-rose-500 mb-4 uppercase text-[10px]">Pasiva</h3>
                             <template x-for="row in trialBalance.filter(r => r.type === 'Liability')" :key="row.code">
                                 <div class="flex justify-between border-b border-white py-2 text-sm"><span x-text="row.name"></span><span class="font-bold" x-text="formatIDR(row.kredit)"></span></div>
                             </template>
@@ -136,20 +140,20 @@
                     </div>
 
                     <div x-show="activeTab === 'Arus Kas'" class="space-y-4">
-                        <div class="flex justify-between p-4 bg-emerald-50 rounded-2xl text-xs"><span>Kas Masuk</span><span class="font-black text-emerald-600" x-text="formatIDR(cashFlow.in)"></span></div>
-                        <div class="flex justify-between p-4 bg-rose-50 rounded-2xl text-xs"><span>Kas Keluar</span><span class="font-black text-rose-600" x-text="formatIDR(cashFlow.out)"></span></div>
-                        <div class="flex justify-between p-6 bg-slate-800 text-white rounded-3xl font-black"><span>SALDO KAS BERSIH</span><span x-text="formatIDR(cashFlow.net)"></span></div>
+                        <div class="flex justify-between p-4 bg-emerald-50 rounded-2xl text-xs"><span>Uang Masuk Tunai</span><span class="font-black text-emerald-600" x-text="formatIDR(cashFlow.in)"></span></div>
+                        <div class="flex justify-between p-4 bg-rose-50 rounded-2xl text-xs"><span>Uang Keluar Tunai</span><span class="font-black text-rose-600" x-text="formatIDR(cashFlow.out)"></span></div>
+                        <div class="flex justify-between p-6 bg-slate-800 text-white rounded-3xl font-black shadow-lg"><span>SALDO KAS NETTO</span><span x-text="formatIDR(cashFlow.net)"></span></div>
                     </div>
 
                     <div x-show="activeTab === 'Buku Besar'" class="space-y-4">
                         <select x-model="selectedGlAccount" class="w-full border-2 border-slate-100 p-2 rounded-xl text-[10px] font-bold outline-none">
                             <template x-for="acc in coa" :key="acc.code"><option :value="acc.code" x-text="acc.name"></option></template>
                         </select>
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto rounded-xl border border-slate-100">
                             <table class="w-full text-[10px]">
-                                <thead class="bg-slate-50 text-slate-400 uppercase font-black"><tr><th class="p-2 text-left">Tgl</th><th class="p-2 text-left">Keterangan</th><th class="p-2 text-right">Debit</th><th class="p-2 text-right">Kredit</th></tr></thead>
+                                <thead class="bg-slate-50 text-slate-400 uppercase font-black"><tr><th class="p-3 text-left">Tgl</th><th class="p-3 text-left">Keterangan</th><th class="p-3 text-right">Debit</th><th class="p-3 text-right">Kredit</th></tr></thead>
                                 <template x-for="gl in generalLedger" :key="gl.id">
-                                    <tr class="border-b"><td class="p-2" x-text="gl.date"></td><td class="p-2 font-bold" x-text="gl.label"></td><td class="p-2 text-right text-emerald-600 font-bold" x-text="gl.dr > 0 ? formatIDR(gl.dr) : '-'"></td><td class="p-2 text-right text-rose-500 font-bold" x-text="gl.cr > 0 ? formatIDR(gl.cr) : '-'"></td></tr>
+                                    <tr class="border-b"><td class="p-3" x-text="gl.date"></td><td class="p-3 font-bold uppercase" x-text="gl.label"></td><td class="p-3 text-right text-emerald-600 font-bold" x-text="gl.dr > 0 ? formatIDR(gl.dr) : '-'"></td><td class="p-3 text-right text-rose-500 font-bold" x-text="gl.cr > 0 ? formatIDR(gl.cr) : '-'"></td></tr>
                                 </template>
                             </table>
                         </div>
@@ -157,39 +161,29 @@
 
                     <div x-show="activeTab === 'Umur Piutang'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="p-6 bg-slate-50 rounded-2xl text-center border border-slate-200">
-                            <p class="text-[10px] font-bold uppercase text-slate-400">0-30 Hari (Lancar)</p>
+                            <p class="text-[10px] font-black uppercase text-slate-400">0-30 Hari</p>
                             <p class="text-xl font-black text-slate-800" x-text="formatIDR(aging.current)"></p>
                         </div>
                         <div class="p-6 bg-amber-50 rounded-2xl text-center border border-amber-200">
-                            <p class="text-[10px] font-bold uppercase text-amber-500">31-60 Hari (Peringatan)</p>
+                            <p class="text-[10px] font-black uppercase text-amber-500">31-60 Hari</p>
                             <p class="text-xl font-black text-amber-600" x-text="formatIDR(aging.warn)"></p>
                         </div>
                         <div class="p-6 bg-rose-50 rounded-2xl text-center border border-rose-200">
-                            <p class="text-[10px] font-bold uppercase text-rose-500">>60 Hari (Macet)</p>
+                            <p class="text-[10px] font-black uppercase text-rose-500">>60 Hari</p>
                             <p class="text-xl font-black text-rose-600" x-text="formatIDR(aging.danger)"></p>
                         </div>
                     </div>
                 </main>
 
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mt-6">
-                    <h2 class="font-black text-slate-800 mb-4 uppercase text-[10px] border-l-4 border-slate-800 pl-3">Log Transaksi (Berdasarkan Filter)</h2>
+                    <h2 class="font-black text-slate-800 mb-4 uppercase text-[10px] border-l-4 border-slate-800 pl-3">Riwayat Jurnal Terfilter</h2>
                     <div class="space-y-2 max-h-96 overflow-y-auto pr-2">
                         <template x-for="j in filteredJournal" :key="j.id">
                             <div class="p-4 bg-slate-50 rounded-2xl flex justify-between items-center text-xs hover:bg-white border border-transparent hover:border-slate-100 transition-all">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-[8px] font-black bg-indigo-100 text-indigo-600 px-1.5 rounded" x-text="j.date"></span>
-                                        <p class="font-black text-slate-700 uppercase" x-text="j.smartLabel"></p>
-                                    </div>
-                                    <p class="text-[10px] text-slate-400 italic mt-1" x-text="j.desc || '-'"></p>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <p class="font-black text-indigo-600 text-sm" x-text="formatIDR(j.amount)"></p>
-                                    <button @click="deleteEntry(j.id)" class="text-slate-200 hover:text-rose-500 transition-colors">🗑️</button>
-                                </div>
+                                <div><div class="flex items-center gap-2"><span class="text-[8px] font-black bg-indigo-100 text-indigo-600 px-1.5 rounded" x-text="j.date"></span><p class="font-black text-slate-700 uppercase" x-text="j.smartLabel"></p></div><p class="text-[10px] text-slate-400 italic mt-1" x-text="j.desc || '-'"></p></div>
+                                <div class="flex items-center gap-4"><p class="font-black text-indigo-600 text-sm" x-text="formatIDR(j.amount)"></p><button @click="deleteEntry(j.id)" class="text-slate-200 hover:text-rose-500 transition-colors">🗑️</button></div>
                             </div>
                         </template>
-                        <div x-show="filteredJournal.length === 0" class="text-center py-10 text-slate-300 italic text-xs">Data tidak ditemukan...</div>
                     </div>
                 </div>
             </div>
@@ -217,20 +211,28 @@
                     loan_in: { label: "TERIMA PINJAMAN", dr: "fundSource", cr: "2-1100", hasAccount: true },
                     payable_pay: { label: "PEMBAYARAN UTANG", dr: "2-1100", cr: "fundSource", hasAccount: true },
                     transfer: { label: "TRANSFER ANTAR AKUN", dr: "transferTo", cr: "fundSource", hasAccount: true },
-                    equity_in: { label: "SETORAN MODAL", dr: "fundSource", cr: "3-1100", hasAccount: true }
+                    equity_in: { label: "SETORAN MODAL", dr: "fundSource", cr: "3-1100", hasAccount: true },
+                    equity_out: { label: "PENARIKAN MODAL (PRIVE)", dr: "3-1100", cr: "fundSource", hasAccount: true }
                 },
                 form: { date: new Date().toISOString().split('T')[0], categoryKey: '', amount: 0, desc: '', source: '1-1100', target: '1-1200' },
                 filters: { search: '', start: '', end: '' },
                 activeTab: 'Utama', selectedGlAccount: '1-1100',
-                journal: JSON.parse(localStorage.getItem('smart_acc_v17_ultimate') || '[]'),
+                journal: JSON.parse(localStorage.getItem('smart_acc_v20_verified') || '[]'),
                 trialBalance: [], totalRevenue: 0, totalExpense: 0, totalAssets: 0, totalPasiva: 0,
 
                 init() { this.calculateLaporan(); },
 
+                handleCategoryChange() {
+                    if (!this.smartCategories[this.form.categoryKey]?.hasAccount) {
+                        this.form.source = '1-1100'; // Hard Reset to default if not needed
+                    }
+                    if (this.form.categoryKey === 'transfer') { this.form.source = '1-1100'; this.form.target = '1-1200'; }
+                },
+
                 get filteredJournal() {
                     return this.journal.filter(j => {
-                        const matchSearch = (j.desc || '').toLowerCase().includes(this.filters.search.toLowerCase()) || 
-                                          j.smartLabel.toLowerCase().includes(this.filters.search.toLowerCase());
+                        const searchLower = this.filters.search.toLowerCase();
+                        const matchSearch = (j.desc || '').toLowerCase().includes(searchLower) || j.smartLabel.toLowerCase().includes(searchLower);
                         const matchStart = this.filters.start ? j.date >= this.filters.start : true;
                         const matchEnd = this.filters.end ? j.date <= this.filters.end : true;
                         return matchSearch && matchStart && matchEnd;
@@ -246,23 +248,34 @@
                     return { revenue: rev, expense: exp };
                 },
 
+                get profitMargin() {
+                    if (this.filteredTotals.revenue === 0) return 0;
+                    const profit = this.filteredTotals.revenue - this.filteredTotals.expense;
+                    return ((profit / this.filteredTotals.revenue) * 100).toFixed(1);
+                },
+
                 needsAccountSelect() { return this.form.categoryKey && this.smartCategories[this.form.categoryKey].hasAccount; },
                 accountLabel() { return this.form.categoryKey === 'transfer' ? "DARI AKUN" : "AKUN KAS/BANK"; },
-                autoSetAccounts() { if (this.form.categoryKey === 'transfer') { this.form.source = '1-1100'; this.form.target = '1-1200'; } },
                 get formattedAmount() { return this.form.amount ? new Intl.NumberFormat('id-ID').format(this.form.amount) : ""; },
                 updateAmount(val) { const clean = val.replace(/\D/g, ''); this.form.amount = clean ? parseInt(clean) : 0; },
                 formatIDR(val) { return 'Rp ' + (val || 0).toLocaleString('id-ID'); },
 
                 hardPost() {
-                    if (!this.form.categoryKey || this.form.amount <= 0) return alert("Lengkapi data!");
+                    if (!this.form.categoryKey || this.form.amount <= 0) return alert("Lengkapi data transaksi!");
                     const cat = this.smartCategories[this.form.categoryKey];
                     let dAcc = (cat.dr === "fundSource") ? this.form.source : (cat.dr === "transferTo" ? this.form.target : cat.dr);
                     let kAcc = (cat.cr === "fundSource") ? this.form.source : (cat.cr === "transferTo" ? this.form.target : cat.cr);
                     
-                    if (this.form.categoryKey === 'transfer' && dAcc === kAcc) return alert("Akun asal dan tujuan tidak boleh sama!");
+                    if (this.form.categoryKey === 'transfer' && dAcc === kAcc) return alert("Akun tidak boleh sama!");
+                    
+                    // Cash Check Warning
+                    const currentBalance = this.trialBalance.find(b => b.code === this.form.source)?.debit || 0;
+                    if (cat.cr === 'fundSource' && currentBalance < this.form.amount) {
+                        if(!confirm("Saldo kas tidak mencukupi. Lanjutkan transaksi?")) return;
+                    }
 
                     this.journal.unshift({ id: Date.now(), date: this.form.date, smartLabel: cat.label, amount: this.form.amount, desc: this.form.desc, debitAcc: dAcc, kreditAcc: kAcc, category: this.form.categoryKey });
-                    this.save(); this.form.amount = 0; this.form.desc = ''; this.calculateLaporan();
+                    this.save(); this.form.amount = 0; this.form.desc = ''; this.form.date = new Date().toISOString().split('T')[0]; this.calculateLaporan();
                 },
 
                 calculateLaporan() {
@@ -281,7 +294,6 @@
                         if(item.type === 'Asset') this.totalAssets += (d - k);
                         return { ...item, debit: d, kredit: k };
                     }).filter(i => i.debit !== 0 || i.kredit !== 0);
-
                     let utang = 0; this.trialBalance.filter(r => r.type === 'Liability').forEach(u => utang += u.kredit);
                     this.totalPasiva = utang + this.equityReport.invest + (this.totalRevenue - this.totalExpense);
                 },
@@ -289,8 +301,8 @@
                 get cashFlow() {
                     let cin = 0, cout = 0;
                     this.journal.forEach(j => {
-                        if (j.category === 'transfer') return;
                         const isCash = (acc) => acc === '1-1100' || acc === '1-1200';
+                        if (j.category === 'transfer') return;
                         if(isCash(j.debitAcc) && !isCash(j.kreditAcc)) cin += j.amount;
                         if(!isCash(j.debitAcc) && isCash(j.kreditAcc)) cout += j.amount;
                     });
@@ -306,7 +318,7 @@
                     let cur = 0, warn = 0, danger = 0; const today = new Date();
                     this.journal.forEach(j => {
                         if(j.debitAcc === '1-1300' || j.kreditAcc === '1-1300') {
-                            const diff = Math.floor((today - new Date(j.date)) / (86400000));
+                            const diff = Math.floor((today - new Date(j.date)) / 86400000);
                             const val = j.debitAcc === '1-1300' ? j.amount : -j.amount;
                             if(diff <= 30) cur += val; else if(diff <= 60) warn += val; else danger += val;
                         }
@@ -320,10 +332,10 @@
                     return { invest: inv };
                 },
 
-                save() { localStorage.setItem('smart_acc_v17_ultimate', JSON.stringify(this.journal)); },
-                deleteEntry(id) { if(confirm("Hapus?")) { this.journal = this.journal.filter(j => j.id !== id); this.save(); this.calculateLaporan(); } },
-                resetData() { if(confirm("Bersihkan semua data?")) { localStorage.removeItem('smart_acc_v17_ultimate'); location.reload(); } },
-                downloadBackup() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.journal)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "BACKUP_ULTIMATE.json"); dl.click(); },
+                save() { localStorage.setItem('smart_acc_v20_verified', JSON.stringify(this.journal)); },
+                deleteEntry(id) { if(confirm("Hapus data ini?")) { this.journal = this.journal.filter(j => j.id !== id); this.save(); this.calculateLaporan(); } },
+                resetData() { if(confirm("Hapus seluruh database permanen?")) { localStorage.removeItem('smart_acc_v20_verified'); location.reload(); } },
+                downloadBackup() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.journal)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "BACKUP_VERIFIED_V20.json"); dl.click(); },
                 importBackup(e) { const reader = new FileReader(); reader.onload = (ev) => { this.journal = JSON.parse(ev.target.result); this.save(); location.reload(); }; reader.readAsText(e.target.files[0]); }
             }
         }
