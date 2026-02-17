@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Accounting V14.14 - Full Categories</title>
+    <title>Smart Accounting V14.17 - Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -13,7 +13,7 @@
         <header class="mb-6 flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight italic uppercase">Smart<span class="text-indigo-600 font-normal">Accounting</span></h1>
-                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">V14.14 - All Categories Restored</p>
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">V14.17 - The Ironclad Edition</p>
             </div>
             <div class="flex flex-wrap gap-2 mt-4 md:mt-0">
                 <button @click="downloadBackup" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold hover:bg-indigo-700 shadow-md transition-all">💾 BACKUP</button>
@@ -52,7 +52,6 @@
                                     </template>
                                 </select>
                             </div>
-
                             <div x-show="form.categoryKey === 'transfer'">
                                 <label class="text-[9px] font-bold text-rose-500 uppercase mt-2 block italic">Ke Akun Tujuan</label>
                                 <select x-model="form.target" class="w-full border-2 border-white p-2.5 rounded-lg text-xs font-bold shadow-sm outline-none">
@@ -77,22 +76,33 @@
             </div>
 
             <div class="lg:col-span-8 space-y-6">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <input type="text" x-model="filters.search" placeholder="Cari keterangan/log..." class="border-2 border-slate-50 bg-slate-50 p-2.5 rounded-xl text-[10px] font-bold outline-none focus:border-indigo-300">
+                        <div class="flex items-center gap-2 md:col-span-2">
+                            <input type="date" x-model="filters.start" class="w-full border-2 border-slate-50 bg-slate-50 p-2.5 rounded-xl text-[10px] font-bold outline-none">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">Sampai</span>
+                            <input type="date" x-model="filters.end" class="w-full border-2 border-slate-50 bg-slate-50 p-2.5 rounded-xl text-[10px] font-bold outline-none">
+                        </div>
+                    </div>
+                </div>
+
                 <nav class="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 overflow-x-auto">
                     <template x-for="tab in ['Utama', 'Neraca', 'Arus Kas', 'Buku Besar', 'Umur Piutang']">
                         <button @click="activeTab = tab" :class="activeTab === tab ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'" class="px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap" x-text="tab"></button>
                     </template>
                 </nav>
 
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[400px]">
+                <main class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[400px]">
                     <div x-show="activeTab === 'Utama'" class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-emerald-500 p-6 rounded-3xl text-white shadow-md font-black">
-                                <p class="text-[10px] uppercase opacity-80 italic">Total Pendapatan</p>
-                                <h3 class="text-2xl" x-text="formatIDR(totalRevenue)"></h3>
+                                <p class="text-[10px] uppercase opacity-80 italic">Pendapatan (Filtered)</p>
+                                <h3 class="text-2xl" x-text="formatIDR(filteredTotals.revenue)"></h3>
                             </div>
                             <div class="bg-indigo-600 p-6 rounded-3xl text-white shadow-md font-black">
-                                <p class="text-[10px] uppercase opacity-80 italic">Laba Bersih</p>
-                                <h3 class="text-2xl" x-text="formatIDR(totalRevenue - totalExpense)"></h3>
+                                <p class="text-[10px] uppercase opacity-80 italic">Laba Bersih (Filtered)</p>
+                                <h3 class="text-2xl" x-text="formatIDR(filteredTotals.revenue - filteredTotals.expense)"></h3>
                             </div>
                         </div>
                         <h2 class="font-black text-slate-800 mb-4 uppercase text-xs border-l-4 border-slate-800 pl-3">Ringkasan Saldo Akun</h2>
@@ -106,22 +116,16 @@
                         </table>
                     </div>
 
-                    <div x-show="activeTab === 'Arus Kas'" class="space-y-4">
-                        <div class="flex justify-between p-4 bg-emerald-50 rounded-2xl text-xs"><span>Penerimaan Kas</span><span class="font-black text-emerald-600" x-text="formatIDR(cashFlow.in)"></span></div>
-                        <div class="flex justify-between p-4 bg-rose-50 rounded-2xl text-xs"><span>Pengeluaran Kas</span><span class="font-black text-rose-600" x-text="formatIDR(cashFlow.out)"></span></div>
-                        <div class="flex justify-between p-6 bg-slate-800 text-white rounded-3xl font-black"><span>NET KAS</span><span x-text="formatIDR(cashFlow.net)"></span></div>
-                    </div>
-
                     <div x-show="activeTab === 'Neraca'" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="p-6 bg-slate-50 rounded-3xl border border-slate-200">
-                            <h3 class="font-black text-indigo-600 mb-4 uppercase text-[10px]">Aktiva</h3>
+                            <h3 class="font-black text-indigo-600 mb-4 uppercase text-[10px]">Aktiva (Harta)</h3>
                             <template x-for="row in trialBalance.filter(r => r.type === 'Asset')" :key="row.code">
                                 <div class="flex justify-between border-b border-white py-2 text-sm"><span x-text="row.name"></span><span class="font-bold" x-text="formatIDR(row.debit)"></span></div>
                             </template>
                             <div class="flex justify-between pt-4 font-black text-indigo-600 border-t border-indigo-100"><span>TOTAL ASET</span><span x-text="formatIDR(totalAssets)"></span></div>
                         </div>
                         <div class="p-6 bg-slate-50 rounded-3xl border border-slate-200">
-                            <h3 class="font-black text-rose-500 mb-4 uppercase text-[10px]">Pasiva</h3>
+                            <h3 class="font-black text-rose-500 mb-4 uppercase text-[10px]">Pasiva (Kewajiban & Modal)</h3>
                             <template x-for="row in trialBalance.filter(r => r.type === 'Liability')" :key="row.code">
                                 <div class="flex justify-between border-b border-white py-2 text-sm"><span x-text="row.name"></span><span class="font-bold" x-text="formatIDR(row.kredit)"></span></div>
                             </template>
@@ -131,33 +135,61 @@
                         </div>
                     </div>
 
+                    <div x-show="activeTab === 'Arus Kas'" class="space-y-4">
+                        <div class="flex justify-between p-4 bg-emerald-50 rounded-2xl text-xs"><span>Kas Masuk</span><span class="font-black text-emerald-600" x-text="formatIDR(cashFlow.in)"></span></div>
+                        <div class="flex justify-between p-4 bg-rose-50 rounded-2xl text-xs"><span>Kas Keluar</span><span class="font-black text-rose-600" x-text="formatIDR(cashFlow.out)"></span></div>
+                        <div class="flex justify-between p-6 bg-slate-800 text-white rounded-3xl font-black"><span>SALDO KAS BERSIH</span><span x-text="formatIDR(cashFlow.net)"></span></div>
+                    </div>
+
                     <div x-show="activeTab === 'Buku Besar'" class="space-y-4">
-                        <select x-model="selectedGlAccount" class="w-full border-2 border-slate-100 p-2 rounded-xl text-[10px] font-bold">
+                        <select x-model="selectedGlAccount" class="w-full border-2 border-slate-100 p-2 rounded-xl text-[10px] font-bold outline-none">
                             <template x-for="acc in coa" :key="acc.code"><option :value="acc.code" x-text="acc.name"></option></template>
                         </select>
-                        <table class="w-full text-[10px]">
-                            <template x-for="gl in generalLedger" :key="gl.id">
-                                <tr class="border-b"><td class="p-2" x-text="gl.date"></td><td class="p-2 font-bold" x-text="gl.label"></td><td class="p-2 text-right text-emerald-600" x-text="gl.dr > 0 ? formatIDR(gl.dr) : '-'"></td><td class="p-2 text-right text-rose-500" x-text="gl.cr > 0 ? formatIDR(gl.cr) : '-'"></td></tr>
-                            </template>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-[10px]">
+                                <thead class="bg-slate-50 text-slate-400 uppercase font-black"><tr><th class="p-2 text-left">Tgl</th><th class="p-2 text-left">Keterangan</th><th class="p-2 text-right">Debit</th><th class="p-2 text-right">Kredit</th></tr></thead>
+                                <template x-for="gl in generalLedger" :key="gl.id">
+                                    <tr class="border-b"><td class="p-2" x-text="gl.date"></td><td class="p-2 font-bold" x-text="gl.label"></td><td class="p-2 text-right text-emerald-600 font-bold" x-text="gl.dr > 0 ? formatIDR(gl.dr) : '-'"></td><td class="p-2 text-right text-rose-500 font-bold" x-text="gl.cr > 0 ? formatIDR(gl.cr) : '-'"></td></tr>
+                                </template>
+                            </table>
+                        </div>
                     </div>
 
-                    <div x-show="activeTab === 'Umur Piutang'" class="grid grid-cols-3 gap-2">
-                        <div class="p-4 bg-slate-50 rounded-2xl text-center"><p class="text-[8px] font-bold">0-30 Hari</p><p class="font-black text-xs" x-text="formatIDR(aging.current)"></p></div>
-                        <div class="p-4 bg-amber-50 rounded-2xl text-center"><p class="text-[8px] font-bold">31-60 Hari</p><p class="font-black text-xs" x-text="formatIDR(aging.warn)"></p></div>
-                        <div class="p-4 bg-rose-50 rounded-2xl text-center"><p class="text-[8px] font-bold">>60 Hari</p><p class="font-black text-xs" x-text="formatIDR(aging.danger)"></p></div>
+                    <div x-show="activeTab === 'Umur Piutang'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-6 bg-slate-50 rounded-2xl text-center border border-slate-200">
+                            <p class="text-[10px] font-bold uppercase text-slate-400">0-30 Hari (Lancar)</p>
+                            <p class="text-xl font-black text-slate-800" x-text="formatIDR(aging.current)"></p>
+                        </div>
+                        <div class="p-6 bg-amber-50 rounded-2xl text-center border border-amber-200">
+                            <p class="text-[10px] font-bold uppercase text-amber-500">31-60 Hari (Peringatan)</p>
+                            <p class="text-xl font-black text-amber-600" x-text="formatIDR(aging.warn)"></p>
+                        </div>
+                        <div class="p-6 bg-rose-50 rounded-2xl text-center border border-rose-200">
+                            <p class="text-[10px] font-bold uppercase text-rose-500">>60 Hari (Macet)</p>
+                            <p class="text-xl font-black text-rose-600" x-text="formatIDR(aging.danger)"></p>
+                        </div>
                     </div>
-                </div>
+                </main>
 
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mt-6">
-                    <h2 class="font-black text-slate-800 mb-4 uppercase text-[10px] border-l-4 border-slate-800 pl-3">Log Transaksi Terakhir</h2>
-                    <div class="space-y-2 max-h-64 overflow-y-auto pr-2">
-                        <template x-for="j in journal" :key="j.id">
-                            <div class="p-4 bg-slate-50 rounded-2xl flex justify-between items-center text-xs">
-                                <div><p class="font-black text-slate-700 uppercase" x-text="j.smartLabel"></p><p class="text-[9px] text-indigo-500 italic" x-text="j.desc || '-'"></p><p class="text-[7px] text-slate-400 font-bold" x-text="j.date"></p></div>
-                                <div class="flex items-center gap-4"><p class="font-black text-indigo-600" x-text="formatIDR(j.amount)"></p><button @click="deleteEntry(j.id)" class="text-slate-300 hover:text-rose-500">🗑️</button></div>
+                    <h2 class="font-black text-slate-800 mb-4 uppercase text-[10px] border-l-4 border-slate-800 pl-3">Log Transaksi (Berdasarkan Filter)</h2>
+                    <div class="space-y-2 max-h-96 overflow-y-auto pr-2">
+                        <template x-for="j in filteredJournal" :key="j.id">
+                            <div class="p-4 bg-slate-50 rounded-2xl flex justify-between items-center text-xs hover:bg-white border border-transparent hover:border-slate-100 transition-all">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[8px] font-black bg-indigo-100 text-indigo-600 px-1.5 rounded" x-text="j.date"></span>
+                                        <p class="font-black text-slate-700 uppercase" x-text="j.smartLabel"></p>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 italic mt-1" x-text="j.desc || '-'"></p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <p class="font-black text-indigo-600 text-sm" x-text="formatIDR(j.amount)"></p>
+                                    <button @click="deleteEntry(j.id)" class="text-slate-200 hover:text-rose-500 transition-colors">🗑️</button>
+                                </div>
                             </div>
                         </template>
+                        <div x-show="filteredJournal.length === 0" class="text-center py-10 text-slate-300 italic text-xs">Data tidak ditemukan...</div>
                     </div>
                 </div>
             </div>
@@ -188,42 +220,48 @@
                     equity_in: { label: "SETORAN MODAL", dr: "fundSource", cr: "3-1100", hasAccount: true }
                 },
                 form: { date: new Date().toISOString().split('T')[0], categoryKey: '', amount: 0, desc: '', source: '1-1100', target: '1-1200' },
+                filters: { search: '', start: '', end: '' },
                 activeTab: 'Utama', selectedGlAccount: '1-1100',
-                journal: JSON.parse(localStorage.getItem('smart_acc_final_v14_14') || '[]'),
+                journal: JSON.parse(localStorage.getItem('smart_acc_v17_ultimate') || '[]'),
                 trialBalance: [], totalRevenue: 0, totalExpense: 0, totalAssets: 0, totalPasiva: 0,
 
-                needsAccountSelect() { return this.form.categoryKey && this.smartCategories[this.form.categoryKey].hasAccount; },
-                accountLabel() { return (this.form.categoryKey === 'transfer') ? "DARI AKUN ASAL" : (['income', 'receivable_pay', 'equity_in', 'loan_in'].includes(this.form.categoryKey) ? "MASUK KE" : "DIBAYAR PAKAI"); },
+                init() { this.calculateLaporan(); },
 
-                autoSetAccounts() {
-                    if (this.form.categoryKey === 'transfer') {
-                        this.form.source = '1-1100'; 
-                        this.form.target = '1-1200';
-                    }
+                get filteredJournal() {
+                    return this.journal.filter(j => {
+                        const matchSearch = (j.desc || '').toLowerCase().includes(this.filters.search.toLowerCase()) || 
+                                          j.smartLabel.toLowerCase().includes(this.filters.search.toLowerCase());
+                        const matchStart = this.filters.start ? j.date >= this.filters.start : true;
+                        const matchEnd = this.filters.end ? j.date <= this.filters.end : true;
+                        return matchSearch && matchStart && matchEnd;
+                    });
                 },
 
+                get filteredTotals() {
+                    let rev = 0, exp = 0;
+                    this.filteredJournal.forEach(j => {
+                        if (["PENDAPATAN TUNAI", "PENAMBAHAN PIUTANG"].includes(j.smartLabel)) rev += j.amount;
+                        if (["BIAYA OPERASIONAL", "PENAMBAHAN UTANG"].includes(j.smartLabel)) exp += j.amount;
+                    });
+                    return { revenue: rev, expense: exp };
+                },
+
+                needsAccountSelect() { return this.form.categoryKey && this.smartCategories[this.form.categoryKey].hasAccount; },
+                accountLabel() { return this.form.categoryKey === 'transfer' ? "DARI AKUN" : "AKUN KAS/BANK"; },
+                autoSetAccounts() { if (this.form.categoryKey === 'transfer') { this.form.source = '1-1100'; this.form.target = '1-1200'; } },
                 get formattedAmount() { return this.form.amount ? new Intl.NumberFormat('id-ID').format(this.form.amount) : ""; },
                 updateAmount(val) { const clean = val.replace(/\D/g, ''); this.form.amount = clean ? parseInt(clean) : 0; },
                 formatIDR(val) { return 'Rp ' + (val || 0).toLocaleString('id-ID'); },
 
-                init() { this.calculateLaporan(); },
-
                 hardPost() {
                     if (!this.form.categoryKey || this.form.amount <= 0) return alert("Lengkapi data!");
-                    const sourceAcc = this.form.source;
-                    const targetAcc = this.form.target;
-
-                    if (this.form.categoryKey === 'transfer' && sourceAcc === targetAcc) return alert("Akun asal dan tujuan tidak boleh sama!");
-                    
                     const cat = this.smartCategories[this.form.categoryKey];
-                    let dAcc = (cat.dr === "fundSource") ? sourceAcc : (cat.dr === "transferTo" ? targetAcc : cat.dr);
-                    let kAcc = (cat.cr === "fundSource") ? sourceAcc : (cat.cr === "transferTo" ? targetAcc : cat.cr);
-
-                    this.journal.unshift({
-                        id: Date.now(), date: this.form.date, smartLabel: cat.label, amount: this.form.amount, desc: this.form.desc,
-                        debitAcc: dAcc, kreditAcc: kAcc, category: this.form.categoryKey
-                    });
+                    let dAcc = (cat.dr === "fundSource") ? this.form.source : (cat.dr === "transferTo" ? this.form.target : cat.dr);
+                    let kAcc = (cat.cr === "fundSource") ? this.form.source : (cat.cr === "transferTo" ? this.form.target : cat.cr);
                     
+                    if (this.form.categoryKey === 'transfer' && dAcc === kAcc) return alert("Akun asal dan tujuan tidak boleh sama!");
+
+                    this.journal.unshift({ id: Date.now(), date: this.form.date, smartLabel: cat.label, amount: this.form.amount, desc: this.form.desc, debitAcc: dAcc, kreditAcc: kAcc, category: this.form.categoryKey });
                     this.save(); this.form.amount = 0; this.form.desc = ''; this.calculateLaporan();
                 },
 
@@ -282,10 +320,10 @@
                     return { invest: inv };
                 },
 
-                save() { localStorage.setItem('smart_acc_final_v14_14', JSON.stringify(this.journal)); },
+                save() { localStorage.setItem('smart_acc_v17_ultimate', JSON.stringify(this.journal)); },
                 deleteEntry(id) { if(confirm("Hapus?")) { this.journal = this.journal.filter(j => j.id !== id); this.save(); this.calculateLaporan(); } },
-                resetData() { if(confirm("Reset?")) { localStorage.removeItem('smart_acc_final_v14_14'); location.reload(); } },
-                downloadBackup() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.journal)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "BACKUP_1414.json"); dl.click(); },
+                resetData() { if(confirm("Bersihkan semua data?")) { localStorage.removeItem('smart_acc_v17_ultimate'); location.reload(); } },
+                downloadBackup() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.journal)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "BACKUP_ULTIMATE.json"); dl.click(); },
                 importBackup(e) { const reader = new FileReader(); reader.onload = (ev) => { this.journal = JSON.parse(ev.target.result); this.save(); location.reload(); }; reader.readAsText(e.target.files[0]); }
             }
         }
